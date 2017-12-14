@@ -19,12 +19,12 @@ func main() {
 	http.HandleFunc("/bike/", func(w http.ResponseWriter, r *http.Request){
 		switch r.Method {
 		case "GET" :
-			//s := r.URL.Path[len("/bike/"):]
-			//if s != "" {
-				//GetUser(w,r,s)
-			//} else {
+			s := r.URL.Path[len("/bike/"):]
+			if s != "" {
+				GetBikeAtShelter(w,r,s)
+			} else {
 				GetAllBike(w,r)
-			//}
+			}
 		//case "POST" : PostNewUser(w,r)
 		
 		//case "DELETE" :
@@ -35,7 +35,7 @@ func main() {
 	http.HandleFunc("/peminjaman/", func(w http.ResponseWriter, r *http.Request){
 		switch r.Method {
 		case "GET" :
-			//s := r.URL.Path[len("/bike/"):]
+			//s := r.URL.Path[len("/peminjaman/"):]
 			//if s != "" {
 				//GetUser(w,r,s)
 			//} else {
@@ -116,48 +116,57 @@ func GetAllPeminjaman(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		err := rows.Scan(&peminjaman.no_peminjaman, &peminjaman.no_induk, &peminjaman.id_sepeda, &peminjaman.no_shelter_ambil, &peminjaman.no_shelter_kembali, &peminjaman.waktu_ambil, &peminjaman.waktu_kembali)
-		fmt.Println(peminjaman.no_peminjaman, peminjaman.no_induk, peminjaman.id_sepeda, peminjaman.no_shelter_ambil, peminjaman.no_shelter_kembali, peminjaman.waktu_ambil, peminjaman.waktu_kembali)
 		
+		fmt.Println(peminjaman.no_peminjaman, peminjaman.no_induk, peminjaman.id_sepeda, peminjaman.no_shelter_ambil, peminjaman.no_shelter_kembali, peminjaman.waktu_ambil, peminjaman.waktu_kembali)
+	
 		if err!= nil {
 			log.Fatal(err)
 		}
 		
-		json.NewEncoder(w).Encode(peminjaman);
+		json.NewEncoder(w).Encode(peminjaman)
 	}
 	err = rows.Err()
 
 }
 
-//func GetUser(w http.ResponseWriter, r *http.Request, id string) {
-//	myid, _ := strconv.Atoi(id)
-//
-//	db, err := sql.Open("mysql", "root@127.0.0.1:3306/bike@campus")
-//	
-//	if err!= nil {
-//		log.Fatal(err)
-//	}
-//	defer db.Close()
-//
-//	myuser := MyUser{};
-//
-//	rows, err := db.Query("select * from user WHERE id = ?", myid)
-//	
-//	if err!= nil {
-//		log.Fatal(err)
-//	}
-//
-//	defer db.Close()
-//
-//	for rows.Next() {
-//		err := rows.Scan(&myuser.id, &myuser.FirstName, &myuser.LastName, &myuser.City, &myuser.Country)
-//		if err!= nil {
-//			log.Fatal(err)
-//		}
-//		
-//		json.NewEncoder(w).Encode(&myuser);
-//	}
-//	err = rows.Err()
-//}
+type Shelter struct {
+	no_shelter int	
+	lokasi string
+	kapasitas int
+	jumlah_sepeda int 
+}
+
+func GetBikeAtShelter(w http.ResponseWriter, r *http.Request, l string) {
+	//lokasi, _ := strconv.Atoi(lokasi)
+
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/bike@campus")
+	
+	if err!= nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	shelter := Shelter{};
+
+	rows, err := db.Query("select lokasi,jumlah_sepeda from shelter WHERE lokasi = ?", l)
+	
+	if err!= nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&shelter.lokasi, &shelter.jumlah_sepeda)
+		if err!= nil {
+			log.Fatal(err)
+		}
+		
+		fmt.Println(shelter.lokasi, shelter.jumlah_sepeda)
+		json.NewEncoder(w).Encode(shelter);
+	}
+	err = rows.Err()
+}
 
 
 //func PostNewUser(w http.ResponseWriter, r *http.Request) {
