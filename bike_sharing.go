@@ -6,7 +6,7 @@ import (
  "net/http"
  "encoding/json"
  "database/sql"
- //"io"
+ "io"
  _ "github.com/go-sql-driver/mysql"
  //"strconv"
  )
@@ -25,7 +25,7 @@ func main() {
 			} else {
 				GetAllBike(w,r)
 			}
-		//case "POST" : PostNewUser(w,r)
+		case "POST" : PostNewPeminjaman(w,r)
 		
 		//case "DELETE" :
 		//	default : http.Error(w, "Invalid Method", 405)
@@ -91,8 +91,8 @@ type Peminjaman struct {
 	no_peminjaman int
 	no_induk string
 	id_sepeda string
-	no_shelter_ambil int
-	no_shelter_kembali int
+	no_shelter_ambil string
+	no_shelter_kembali string
 	waktu_ambil string
 	waktu_kembali string
 	
@@ -169,47 +169,48 @@ func GetBikeAtShelter(w http.ResponseWriter, r *http.Request, l string) {
 }
 
 
-//func PostNewUser(w http.ResponseWriter, r *http.Request) {
-//	out := make([] byte, 1024)
-//
-//	bodyLen, err := r.Body.Read(out)
-//
-//	if err != io.EOF {
-//		fmt.Printf(err.Error())
-//		w.Write([]byte("{error:" + err.Error() + "}"))
-//		return
-//	} 
-//	var k MyUser
-//	err = json.Unmarshal(out[:bodyLen],&k)
-//	if err != nil {
-//		w.Write([]byte("{error:" + err.Error() + "}"))
-//		return
-//	}
+func PostNewPeminjaman(w http.ResponseWriter, r *http.Request) {
+	out := make([] byte, 1024)
 
-//	idx := insertInDatabase(k)
-//	log.Printf(" ID Baru %d",idx)
-//	w.Write([]byte(`{"error":"success"}`))
-//}
+	bodyLen, err := r.Body.Read(out)
 
-//func insertInDatabase(data MyUser) int64 {
-//	log.Printf(data.FirstName)
-//	db, err := sql.Open("mysql", "root@127.0.0.1:3306/bike@campus")
-//	
-//	if err!= nil {
-//		log.Fatal(err)
-//	}
-//	defer db.Close()
-//
-//	result, err := db.Exec("INSERT INTO user (FirstName, LastName, City, Country) VALUES(?,?,?,?) ", data.FirstName, data.LastName, data.City, data.Country)
-//	
+	if err != io.EOF {
+		fmt.Printf(err.Error())
+		w.Write([]byte("{error:" + err.Error() + "}"))
+		return
+	} 
+	var k Peminjaman
+	err = json.Unmarshal(out[:bodyLen],&k)
+	if err != nil {
+		w.Write([]byte("{error:" + err.Error() + "}"))
+		return
+	}
+
+	idx := insertInDatabase(k)
+	log.Printf(" Nomor peminjaman baru %d",idx)
+	w.Write([]byte(`{"error":"success"}`))
+}
+
+func insertInDatabase(data Peminjaman) int64 {
+	//fmt.Printf("Nomor peminjaman")
+	//log.Printf(data.no_peminjaman)
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/bike@campus")
+	
+	if err!= nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	result, err := db.Exec("INSERT INTO peminjaman (no_induk, id_sepeda, no_shelter_ambil, no_shelter_kembali) VALUES(?,?,?,?) ", data.no_induk, data.id_sepeda, data.no_shelter_ambil, data.no_shelter_kembali)
 	
 	
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	//log.Printf(result);
-//	lastid,_ := result.LastInsertId(); 
-//	return lastid
-//}
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+	//log.Printf(result);
+	lastid,_ := result.LastInsertId(); 
+	return lastid
+}
 //Penggunaan 
 //curl POST -H "Content-Type: application/json" -d '{"FirstNme":"Spark","City":"Jakarta","Country":"ID"}' http://localhost:8181/users/ -v
